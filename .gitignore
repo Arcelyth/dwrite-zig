@@ -1,0 +1,10 @@
+*~
+.*.swp
+.swp
+*.log
+.DS_Store
+zig-cache/
+.zig-cache/
+zig-out/
+zig-pkg/
+/examples/**/target/

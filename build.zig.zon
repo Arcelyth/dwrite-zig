@@ -1,0 +1,13 @@
+.{
+    .name = .dwrite_zig,
+    .version = "0.0.1",
+    .dependencies = .{
+        .translate_c = .{
+            .url = "git+https://codeberg.org/ziglang/translate-c#9b5eb014df946d26b86c3d42b5d133d0fe48fe61",
+            .hash = "translate_c-0.0.0-Q_BUWu5OBwCBUFLkC6LVoVWssXLQG5E8NZvxu9XbaZ75",
+        },
+    },
+    .minimum_zig_version = "0.17.0",
+    .paths = .{""},
+    .fingerprint = 0x339f9c368cfa6921,
+}
