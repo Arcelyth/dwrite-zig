@@ -15,7 +15,7 @@ pub fn build(b: *std.Build) void {
 
     t.mod.linkSystemLibrary("dwrite", .{});
 
-    const module = b.addModule("dwrite", .{
+    const module = b.addModule("dwrite_zig", .{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
