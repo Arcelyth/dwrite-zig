@@ -75,3 +75,37 @@ pub fn getClusterMetrics(self: TextLayout, allocator: std.mem.Allocator) ![]Clus
 
     return result;
 }
+
+test "TextLayout text and cluster metrics" {
+    const allocator = std.testing.allocator;
+    const factory = try @import("Factory.zig").init(c.DWRITE_FACTORY_TYPE_SHARED);
+    defer factory.deinit();
+    const format = try factory.createTextFormat(allocator, .{
+        .family_name = "Segoe UI",
+        .size = 16,
+        .locale = "en-US",
+    });
+    defer format.deinit();
+    const layout = try factory.createTextLayout(allocator, "A B", format, 200, 100);
+    defer layout.deinit();
+
+    const metrics = try layout.getMetrics();
+    try std.testing.expectEqual(@as(u32, 1), metrics.lineCount);
+    try std.testing.expectEqual(@as(f32, 200), metrics.layoutWidth);
+    try std.testing.expectEqual(@as(f32, 100), metrics.layoutHeight);
+    try std.testing.expect(metrics.width > 0);
+    try std.testing.expect(metrics.height > 0);
+
+    const clusters = try layout.getClusterMetrics(allocator);
+    defer allocator.free(clusters);
+    try std.testing.expectEqual(@as(usize, 3), clusters.len);
+    for (clusters) |cluster| {
+        try std.testing.expectEqual(@as(u16, 1), cluster.length);
+        try std.testing.expect(cluster.width > 0);
+        try std.testing.expect(!cluster.is_newline);
+        try std.testing.expect(!cluster.is_right_to_left);
+    }
+    try std.testing.expect(!clusters[0].is_whitespace);
+    try std.testing.expect(clusters[1].is_whitespace);
+    try std.testing.expect(!clusters[2].is_whitespace);
+}

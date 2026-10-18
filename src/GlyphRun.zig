@@ -251,3 +251,49 @@ const Collector = struct {
         return c.E_NOTIMPL;
     }
 };
+
+test "GlyphRun owned layout snapshot and glyph positions" {
+    const allocator = std.testing.allocator;
+    const factory = try @import("Factory.zig").init(c.DWRITE_FACTORY_TYPE_SHARED);
+    defer factory.deinit();
+
+    const format = try factory.createTextFormat(allocator, .{
+        .family_name = "Segoe UI",
+        .size = 16,
+        .locale = "en-US",
+    });
+    defer format.deinit();
+
+    const runs = blk: {
+        const layout = try factory.createTextLayout(allocator, "ABC", format, 200, 100);
+        defer layout.deinit();
+        break :blk try layout.getGlyphRuns(allocator);
+    };
+    defer {
+        for (runs) |run| run.deinit(allocator);
+        allocator.free(runs);
+    }
+
+    try std.testing.expectEqual(@as(usize, 1), runs.len);
+    const run = runs[0];
+    try std.testing.expectEqual(@as(f32, 16), run.font_em_size);
+    try std.testing.expect(!run.isRightToLeft());
+    try std.testing.expectEqual(@as(usize, 3), run.glyph_indices.len);
+    try std.testing.expectEqual(run.glyph_indices.len, run.glyph_advances.len);
+    try std.testing.expectEqual(run.glyph_indices.len, run.glyph_offsets.len);
+    try std.testing.expect(run.font_face.getGlyphCount() > 0);
+
+    const indices = try run.getStringIndices(allocator);
+    defer allocator.free(indices);
+    try std.testing.expectEqualSlices(u32, &.{ 0, 1, 2 }, indices);
+
+    const positions = try run.getPositions(allocator);
+    defer allocator.free(positions);
+    try std.testing.expectEqual(@as(usize, 3), positions.len);
+    try std.testing.expect(positions[0].x < positions[1].x);
+    try std.testing.expect(positions[1].x < positions[2].x);
+    for (positions) |position| {
+        try std.testing.expectEqual(run.baseline.y, position.y);
+    }
+}
+

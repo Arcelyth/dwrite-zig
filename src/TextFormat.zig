@@ -39,3 +39,26 @@ pub fn setReadingDirection(self: TextFormat, direction: c.DWRITE_READING_DIRECTI
 pub fn setTextAlignment(self: TextFormat, alignment: c.DWRITE_TEXT_ALIGNMENT) hresult.Error!void {
     try hresult.check(self.ref.lpVtbl.*.SetTextAlignment.?(self.ref, alignment));
 }
+
+test "TextFormat creation and formatting options" {
+    const std = @import("std");
+    const factory = try @import("Factory.zig").init(c.DWRITE_FACTORY_TYPE_SHARED);
+    defer factory.deinit();
+    const format = try factory.createTextFormat(std.testing.allocator, .{
+        .family_name = "Segoe UI",
+        .size = 16,
+        .locale = "en-US",
+    });
+    defer format.deinit();
+
+    try std.testing.expectEqual(@as(f32, 16), format.ref.lpVtbl.*.GetFontSize.?(format.ref));
+
+    try format.setWordWrapping(c.DWRITE_WORD_WRAPPING_NO_WRAP);
+    try std.testing.expectEqual(@as(c.DWRITE_WORD_WRAPPING, c.DWRITE_WORD_WRAPPING_NO_WRAP), format.ref.lpVtbl.*.GetWordWrapping.?(format.ref));
+
+    try format.setReadingDirection(c.DWRITE_READING_DIRECTION_RIGHT_TO_LEFT);
+    try std.testing.expectEqual(@as(c.DWRITE_READING_DIRECTION, c.DWRITE_READING_DIRECTION_RIGHT_TO_LEFT), format.ref.lpVtbl.*.GetReadingDirection.?(format.ref));
+
+    try format.setTextAlignment(c.DWRITE_TEXT_ALIGNMENT_CENTER);
+    try std.testing.expectEqual(@as(c.DWRITE_TEXT_ALIGNMENT, c.DWRITE_TEXT_ALIGNMENT_CENTER), format.ref.lpVtbl.*.GetTextAlignment.?(format.ref));
+}
