@@ -9,6 +9,7 @@ pub const LocalizedStrings = @import("LocalizedStrings.zig");
 pub const TextFormat = @import("TextFormat.zig");
 pub const TextLayout = @import("TextLayout.zig");
 pub const GlyphRun = @import("GlyphRun.zig");
+pub const GlyphRunAnalysis = @import("GlyphRunAnalysis.zig");
 pub const hresult = @import("hresult.zig");
 
 test {

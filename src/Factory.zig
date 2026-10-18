@@ -5,6 +5,7 @@ const hresult = @import("hresult.zig");
 const FontCollection = @import("FontCollection.zig");
 const TextFormat = @import("TextFormat.zig");
 const TextLayout = @import("TextLayout.zig");
+const GlyphRunAnalysis = @import("GlyphRunAnalysis.zig");
 const utils = @import("utils.zig");
 
 ref: *c.IDWriteFactory,
@@ -32,6 +33,28 @@ pub fn init(factory_type: c.DWRITE_FACTORY_TYPE) hresult.Error!Factory {
 pub fn getSystemFontCollection(self: Factory, update: bool) hresult.Error!FontCollection {
     var ref: ?*c.IDWriteFontCollection = null;
     try hresult.check(self.ref.lpVtbl.*.GetSystemFontCollection.?(self.ref, @ptrCast(&ref), @intFromBool(update)));
+
+    return .fromRef(ref orelse return error.UnexpectedResult);
+}
+
+/// Borrows the native run and options for this call. The returned analysis is owned.
+pub fn createGlyphRunAnalysis(
+    self: Factory,
+    run: *const c.DWRITE_GLYPH_RUN,
+    options: GlyphRunAnalysis.Options,
+) hresult.Error!GlyphRunAnalysis {
+    var ref: ?*c.IDWriteGlyphRunAnalysis = null;
+    try hresult.check(self.ref.lpVtbl.*.CreateGlyphRunAnalysis.?(
+        self.ref,
+        run,
+        options.pixels_per_dip,
+        options.transform,
+        options.rendering_mode,
+        options.measuring_mode,
+        options.baseline_origin_x,
+        options.baseline_origin_y,
+        @ptrCast(&ref),
+    ));
 
     return .fromRef(ref orelse return error.UnexpectedResult);
 }
