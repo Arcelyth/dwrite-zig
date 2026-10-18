@@ -6,6 +6,9 @@ pub const Font = @import("Font.zig");
 pub const FontFace = @import("FontFace.zig");
 pub const FontTable = @import("FontTable.zig");
 pub const LocalizedStrings = @import("LocalizedStrings.zig");
+pub const TextFormat = @import("TextFormat.zig");
+pub const TextLayout = @import("TextLayout.zig");
+pub const GlyphRun = @import("GlyphRun.zig");
 pub const hresult = @import("hresult.zig");
 
 test {
