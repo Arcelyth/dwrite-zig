@@ -4,6 +4,7 @@ const c = @import("c");
 const hresult = @import("hresult.zig");
 const FontCollection = @import("FontCollection.zig");
 const TextFormat = @import("TextFormat.zig");
+const TextLayout = @import("TextLayout.zig");
 const utils = @import("utils.zig");
 
 ref: *c.IDWriteFactory,
@@ -40,7 +41,6 @@ pub fn createTextFormat(self: Factory, allocator: std.mem.Allocator, options: Te
     defer allocator.free(family);
     const locale = try utils.toWide(allocator, options.locale);
     defer allocator.free(locale);
-
     var ref: ?*c.IDWriteTextFormat = null;
     try hresult.check(self.ref.lpVtbl.*.CreateTextFormat.?(
         self.ref,
@@ -51,6 +51,43 @@ pub fn createTextFormat(self: Factory, allocator: std.mem.Allocator, options: Te
         options.stretch,
         options.size,
         locale.ptr,
+        @ptrCast(&ref),
+    ));
+
+    return .fromRef(ref orelse return error.UnexpectedResult);
+}
+
+pub fn createTextLayout(
+    self: Factory,
+    allocator: std.mem.Allocator,
+    text: []const u8,
+    format: TextFormat,
+    width: f32,
+    height: f32,
+) !TextLayout {
+    const wide = try std.unicode.utf8ToUtf16LeAlloc(allocator, text);
+    defer allocator.free(wide);
+
+    return self.createTextLayoutUtf16(wide, format, width, height);
+}
+
+/// Copies UTF-16 input and the caller retains ownership of text and format.
+pub fn createTextLayoutUtf16(
+    self: Factory,
+    text: []const u16,
+    format: TextFormat,
+    width: f32,
+    height: f32,
+) !TextLayout {
+    const length = std.math.cast(u32, text.len) orelse return error.InputTooLong;
+    var ref: ?*c.IDWriteTextLayout = null;
+    try hresult.check(self.ref.lpVtbl.*.CreateTextLayout.?(
+        self.ref,
+        text.ptr,
+        length,
+        format.ref,
+        width,
+        height,
         @ptrCast(&ref),
     ));
 
